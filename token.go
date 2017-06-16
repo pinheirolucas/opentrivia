@@ -1,5 +1,8 @@
 package opentrivia
 
+// Token is the type for tokens.
+type Token string
+
 // TokenEmptyError is returned when the Open Trivia API has
 // returned all possible questions for the specified query.
 //
@@ -21,7 +24,7 @@ type TokenService service
 //
 // If all questions for a given category has already been returned,
 // the request will return an opentrivia.TokenEmptyError.
-func (t *TokenService) Create() (string, error) {
+func (t *TokenService) Create() (Token, error) {
 	return "", nil
 }
 
@@ -29,7 +32,7 @@ func (t *TokenService) Create() (string, error) {
 //
 // If the provided token is invalid, the request will return an
 // opentrivia.TokenNotFoundError.
-func (t *TokenService) Reset(token string) (string, error) {
+func (t *TokenService) Reset(token Token) (Token, error) {
 	return "", nil
 }
 
@@ -37,6 +40,6 @@ func (t *TokenService) Reset(token string) (string, error) {
 //
 // If the provided token is not found, the request will return an
 // opentrivia.TokenNotFoundError.
-func (t *TokenService) StillValid(token string) (bool, error) {
+func (t *TokenService) StillValid(token Token) (bool, error) {
 	return false, nil
 }

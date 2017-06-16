@@ -133,6 +133,7 @@ type QuestionListOptions struct {
 	Category   QuestionCategory
 	Difficulty QuestionDifficulty
 	Type       QuestionType
+	Token      Token
 }
 
 // QuestionRandomOptions are the options for QuestionService Random
@@ -141,6 +142,7 @@ type QuestionRandomOptions struct {
 	Category   QuestionCategory
 	Difficulty QuestionDifficulty
 	Type       QuestionType
+	Token      Token
 }
 
 // QuestionService handles communication with the question related
