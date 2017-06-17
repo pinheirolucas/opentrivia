@@ -1,2 +1,5 @@
 package: github.com/pinheirolucas/opentrivia
-import: []
+import:
+- package: github.com/google/go-querystring
+- package: github.com/pkg/errors
+  version: ^0.8.0
