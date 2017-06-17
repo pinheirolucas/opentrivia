@@ -1,11 +1,19 @@
 package opentrivia
 
-import (
-	"errors"
+import "github.com/pkg/errors"
+import "github.com/google/go-querystring/query"
+
+type (
+	// Token is the type for tokens.
+	Token string
+
+	tokenCommand string
 )
 
-// Token is the type for tokens.
-type Token string
+const (
+	tokenCommandCreate  tokenCommand = "request"
+	tokenCommandRefresh tokenCommand = "reset"
+)
 
 var (
 	// ErrTokenEmpty is returned when the Open Trivia API has
@@ -18,6 +26,17 @@ var (
 	// do not found the provided token.
 	ErrTokenNotFound = errors.New("opentrivia: token does not exist")
 )
+
+type tokenOptions struct {
+	Command tokenCommand `url:"command,omitempty"`
+	Token   Token        `url:"token,omitempty"`
+}
+
+type tokenResponse struct {
+	ResponseCode    responseCode `json:"response_code,omitempty"`
+	ResponseMessage string       `json:"response_message,omitempty"`
+	Token           Token        `json:"token,omitempty"`
+}
 
 // TokenService handles communication with the token related
 // methods of the Open Trivia API
@@ -35,21 +54,66 @@ type TokenService service
 // If all questions for a given category has already been returned,
 // the request will return an opentrivia.ErrTokenEmpty.
 func (t *TokenService) Create() (Token, error) {
-	return "", nil
+	options := &tokenOptions{
+		Command: tokenCommandCreate,
+	}
+
+	v, err := query.Values(options)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := t.client.NewRequest(defaultTokenRoute, v)
+	if err != nil {
+		return "", err
+	}
+
+	var resp tokenResponse
+	if _, err := t.client.Do(req, &resp); err != nil {
+		return "", err
+	}
+
+	switch resp.ResponseCode {
+	case responseCodeInvalidParameter:
+		return "", ErrInvalidParameter
+	case responseCodeTokenNotFound:
+		return "", ErrTokenNotFound
+	}
+
+	return resp.Token, nil
 }
 
-// Reset refresh the provided token.
+// Refresh the provided token.
 //
 // If the provided token is invalid, the request will return an
 // opentrivia.ErrTokenNotFound.
-func (t *TokenService) Reset(token Token) (Token, error) {
-	return "", nil
-}
+func (t *TokenService) Refresh(token Token) (Token, error) {
+	options := &tokenOptions{
+		Command: tokenCommandRefresh,
+		Token:   token,
+	}
 
-// StillValid should be used to check if the token still valid.
-//
-// If the provided token is not found, the request will return an
-// opentrivia.ErrTokenNotFound.
-func (t *TokenService) StillValid(token Token) (bool, error) {
-	return false, nil
+	v, err := query.Values(options)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := t.client.NewRequest(defaultTokenRoute, v)
+	if err != nil {
+		return "", err
+	}
+
+	var resp tokenResponse
+	if _, err := t.client.Do(req, &resp); err != nil {
+		return "", err
+	}
+
+	switch resp.ResponseCode {
+	case responseCodeInvalidParameter:
+		return "", ErrInvalidParameter
+	case responseCodeTokenNotFound:
+		return "", ErrTokenNotFound
+	}
+
+	return resp.Token, nil
 }

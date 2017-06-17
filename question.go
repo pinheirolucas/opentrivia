@@ -1,5 +1,7 @@
 package opentrivia
 
+import "github.com/google/go-querystring/query"
+
 type (
 	// QuestionCategory is the type for category option.
 	QuestionCategory uint8
@@ -114,6 +116,21 @@ const (
 	QuestionTypeTrueFalse QuestionType = "boolean"
 )
 
+var (
+	// DefaultQuestionListOptions is the default options of Question List
+	// method.
+	DefaultQuestionListOptions = &QuestionListOptions{
+		AutoRefresh: false,
+		Limit:       10,
+	}
+
+	// DefaultQuestionRandomOptions is the default options of Question Random
+	// method.
+	DefaultQuestionRandomOptions = &QuestionRandomOptions{
+		AutoRefresh: false,
+	}
+)
+
 // Question is the model of the Open Trivia API Question related
 // methods.
 type Question struct {
@@ -128,21 +145,32 @@ type Question struct {
 // QuestionListOptions are the options for QuestionService List
 // method.
 type QuestionListOptions struct {
+	// If true, the request will refresh the provided token when needed.
+	AutoRefresh bool `url:"-"`
+
 	// The maximum limit is 50.
-	Limit      uint8
-	Category   QuestionCategory
-	Difficulty QuestionDifficulty
-	Type       QuestionType
-	Token      Token
+	Category   QuestionCategory   `url:"category,omitempty"`
+	Difficulty QuestionDifficulty `url:"difficulty,omitempty"`
+	Limit      uint8              `url:"amount,omitempty"`
+	Token      Token              `url:"token,omitempty"`
+	Type       QuestionType       `url:"type,omitempty"`
 }
 
 // QuestionRandomOptions are the options for QuestionService Random
 // method.
 type QuestionRandomOptions struct {
-	Category   QuestionCategory
-	Difficulty QuestionDifficulty
-	Type       QuestionType
-	Token      Token
+	// If true, the request will refresh the provided token when needed.
+	AutoRefresh bool `url:"-"`
+
+	Category   QuestionCategory   `url:"category,omitempty"`
+	Difficulty QuestionDifficulty `url:"difficulty,omitempty"`
+	Token      Token              `url:"token,omitempty"`
+	Type       QuestionType       `url:"type,omitempty"`
+}
+
+type questionResponse struct {
+	ResponseCode responseCode `json:"response_code"`
+	Results      []Question   `json:"results"`
 }
 
 // QuestionService handles communication with the question related
@@ -152,11 +180,95 @@ type QuestionRandomOptions struct {
 type QuestionService service
 
 // List returns a list of random questions from Open Trivia API.
-func (q *QuestionService) List(options *QuestionListOptions) ([]*Question, error) {
-	return nil, nil
+//
+// If options is nil, List will use opentrivia.DefaultQuestionListOptions.
+func (q *QuestionService) List(options *QuestionListOptions) ([]Question, error) {
+	if options == nil {
+		options = DefaultQuestionListOptions
+	}
+
+	v, err := query.Values(options)
+	if err != nil {
+		return []Question{}, err
+	}
+
+	req, err := q.client.NewRequest(defaultAPIRoute, v)
+	if err != nil {
+		return []Question{}, err
+	}
+
+	var resp questionResponse
+	if _, err := q.client.Do(req, &resp); err != nil {
+		return []Question{}, err
+	}
+
+	switch resp.ResponseCode {
+	case responseCodeInvalidParameter:
+		return []Question{}, ErrInvalidParameter
+	case responseCodeNoResults:
+		return []Question{}, ErrNoResults
+	case responseCodeTokenEmpty:
+		if options.AutoRefresh {
+			t, err := q.client.Token.Refresh(options.Token)
+			if err != nil {
+				return []Question{}, err
+			}
+
+			options.Token = t
+			return q.client.Question.List(options)
+		}
+
+		return []Question{}, ErrTokenEmpty
+	case responseCodeTokenNotFound:
+		return []Question{}, ErrTokenNotFound
+	}
+
+	return resp.Results, nil
 }
 
 // Random returns a random question from Open Trivia API.
-func (q *QuestionService) Random(options *QuestionRandomOptions) (*Question, error) {
-	return nil, nil
+//
+// If options is nil, Random will use opentrivia.DefaultQuestionRandomOptions.
+func (q *QuestionService) Random(options *QuestionRandomOptions) (Question, error) {
+	if options == nil {
+		options = DefaultQuestionRandomOptions
+	}
+
+	v, err := query.Values(options)
+	if err != nil {
+		return Question{}, err
+	}
+
+	req, err := q.client.NewRequest(defaultAPIRoute, v)
+	if err != nil {
+		return Question{}, err
+	}
+
+	var resp questionResponse
+	if _, err := q.client.Do(req, &resp); err != nil {
+		return Question{}, err
+	}
+
+	switch resp.ResponseCode {
+	case responseCodeInvalidParameter:
+		return Question{}, ErrInvalidParameter
+	case responseCodeNoResults:
+		return Question{}, ErrNoResults
+	case responseCodeTokenEmpty:
+		if options.AutoRefresh {
+			t, err := q.client.Token.Refresh(options.Token)
+			if err != nil {
+				return Question{}, err
+			}
+
+			options.Token = t
+			return q.client.Question.Random(options)
+		}
+
+		return Question{}, ErrTokenEmpty
+	case responseCodeTokenNotFound:
+		return Question{}, ErrTokenNotFound
+	}
+
+	return resp.Results[0], nil
 }
