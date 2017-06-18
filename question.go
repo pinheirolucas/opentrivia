@@ -14,9 +14,6 @@ type (
 )
 
 const (
-	// QuestionCategoryAny is the value for "any" category type.
-	QuestionCategoryAny QuestionCategory = 0
-
 	// QuestionCategoryGeneralKnowledge is the value for
 	// "general knowledge" category type.
 	QuestionCategoryGeneralKnowledge QuestionCategory = 9
@@ -92,9 +89,6 @@ const (
 )
 
 const (
-	// QuestionDifficultyAny is the value for "any" difficulty type.
-	QuestionDifficultyAny QuestionDifficulty = "any"
-
 	// QuestionDifficultyEasy is the value for "easy" difficulty type.
 	QuestionDifficultyEasy QuestionDifficulty = "easy"
 
@@ -106,9 +100,6 @@ const (
 )
 
 const (
-	// QuestionTypeAny is the value for "any" question type.
-	QuestionTypeAny QuestionType = "any"
-
 	// QuestionTypeMultiple is the value for "multiple" question type.
 	QuestionTypeMultiple QuestionType = "multiple"
 
@@ -185,6 +176,10 @@ type QuestionService service
 func (q *QuestionService) List(options *QuestionListOptions) ([]Question, error) {
 	if options == nil {
 		options = DefaultQuestionListOptions
+	} else if options.Limit <= 0 {
+		options.Limit = DefaultQuestionListOptions.Limit
+	} else if options.Limit > 50 {
+		options.Limit = 50
 	}
 
 	v, err := query.Values(options)
@@ -238,6 +233,8 @@ func (q *QuestionService) Random(options *QuestionRandomOptions) (Question, erro
 	if err != nil {
 		return Question{}, err
 	}
+	// This method requires a single result
+	v.Set("amount", "1")
 
 	req, err := q.client.NewRequest(defaultAPIRoute, v)
 	if err != nil {
