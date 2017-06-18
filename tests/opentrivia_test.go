@@ -14,6 +14,8 @@ func init() {
 }
 
 func TestClientNewRequest(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should not return an error", func(t *testing.T) {
 		t.Parallel()
 

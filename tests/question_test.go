@@ -7,6 +7,8 @@ import (
 )
 
 func TestList(t *testing.T) {
+	t.Parallel()
+
 	t.Run("expect the default limit to be 10", func(t *testing.T) {
 		t.Parallel()
 
@@ -225,6 +227,8 @@ func TestList(t *testing.T) {
 }
 
 func TestRandom(t *testing.T) {
+	t.Parallel()
+
 	t.Run("expect the question difficulty to be the same as provided by options", func(t *testing.T) {
 		t.Parallel()
 

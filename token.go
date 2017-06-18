@@ -73,13 +73,6 @@ func (t *TokenService) Create() (Token, error) {
 		return "", err
 	}
 
-	switch resp.ResponseCode {
-	case responseCodeInvalidParameter:
-		return "", ErrInvalidParameter
-	case responseCodeTokenNotFound:
-		return "", ErrTokenNotFound
-	}
-
 	return resp.Token, nil
 }
 
