@@ -3,3 +3,4 @@ import:
 - package: github.com/google/go-querystring
 - package: github.com/pkg/errors
   version: ^0.8.0
+- package: github.com/shogo82148/go-shuffle

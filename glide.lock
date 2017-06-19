@@ -1,5 +1,5 @@
-hash: 028a37fd2b310da91beefeafe03accaae21e8a5bb0bf71e3e312e9bfd7a9a504
-updated: 2017-06-18T20:05:06.617941246-03:00
+hash: 532224560c847152343d4842dd1ab749b35d55c64f47469e3eab96350a763621
+updated: 2017-06-18T20:56:16.999483365-03:00
 imports:
 - name: github.com/google/go-querystring
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
@@ -7,4 +7,6 @@ imports:
   - query
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/shogo82148/go-shuffle
+  version: 4789c7c401f229b3ae1673acbccca451480660cd
 testImports: []

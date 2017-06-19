@@ -6,7 +6,70 @@ import (
 	"github.com/pinheirolucas/opentrivia"
 )
 
-func TestList(t *testing.T) {
+func TestQuestionIsAnswerCorrect(t *testing.T) {
+	t.Parallel()
+
+	question := &opentrivia.Question{
+		CorrectAnswer: "Correct",
+		IncorrectAnswers: []string{
+			"Incorrect",
+			"Incorrect",
+			"Incorrect",
+		},
+	}
+
+	t.Run("expect the answer to be correct", func(t *testing.T) {
+		t.Parallel()
+
+		const answer = "Correct"
+
+		result := question.IsAnswerCorrect(answer)
+
+		if !result {
+			t.Errorf("The answer %s should be correct, but returned incorrect", answer)
+		}
+	})
+
+	t.Run("expect the answer to be incorrect", func(t *testing.T) {
+		t.Parallel()
+
+		const answer = "Incorrect"
+
+		result := question.IsAnswerCorrect(answer)
+
+		if result {
+			t.Errorf("The answer %s should be incorrect, but returned correct", answer)
+		}
+	})
+}
+
+func TestQuestionShuffleAnswers(t *testing.T) {
+	t.Parallel()
+
+	question := &opentrivia.Question{
+		CorrectAnswer: "Correct",
+		IncorrectAnswers: []string{
+			"Incorrect",
+			"Incorrect",
+			"Incorrect",
+		},
+	}
+
+	answers := question.ShuffleAnswers()
+
+	var correctCount uint8
+	for _, v := range answers {
+		if v == "Correct" {
+			correctCount++
+		}
+	}
+
+	if correctCount != 1 {
+		t.Errorf("The list must have only one correct answer, got %d", correctCount)
+	}
+}
+
+func TestQuestionServiceList(t *testing.T) {
 	t.Parallel()
 
 	t.Run("expect the default limit to be 10", func(t *testing.T) {
@@ -226,7 +289,7 @@ func TestList(t *testing.T) {
 	})
 }
 
-func TestRandom(t *testing.T) {
+func TestQuestionServiceRandom(t *testing.T) {
 	t.Parallel()
 
 	t.Run("expect the question difficulty to be the same as provided by options", func(t *testing.T) {

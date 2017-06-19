@@ -1,6 +1,9 @@
 package opentrivia
 
-import "github.com/google/go-querystring/query"
+import (
+	"github.com/google/go-querystring/query"
+	shuffle "github.com/shogo82148/go-shuffle"
+)
 
 type (
 	// QuestionCategory is the type for category option.
@@ -122,17 +125,6 @@ var (
 	}
 )
 
-// Question is the model of the Open Trivia API Question related
-// methods.
-type Question struct {
-	Category        string   `json:"category"`
-	Type            string   `json:"type"`
-	Difficulty      string   `json:"difficulty"`
-	Question        string   `json:"question"`
-	CorrectAnswer   string   `json:"correct_answer"`
-	IncorrectAnswer []string `json:"incorrect_answer"`
-}
-
 // QuestionListOptions are the options for QuestionService List
 // method.
 type QuestionListOptions struct {
@@ -162,6 +154,31 @@ type QuestionRandomOptions struct {
 type questionResponse struct {
 	ResponseCode responseCode `json:"response_code"`
 	Results      []Question   `json:"results"`
+}
+
+// Question is the model of the Open Trivia API Question related
+// methods.
+type Question struct {
+	Category         string   `json:"category"`
+	Type             string   `json:"type"`
+	Difficulty       string   `json:"difficulty"`
+	Question         string   `json:"question"`
+	CorrectAnswer    string   `json:"correct_answer"`
+	IncorrectAnswers []string `json:"incorrect_answers"`
+}
+
+// IsAnswerCorrect helps to find out if the provided answer is correct
+func (q *Question) IsAnswerCorrect(answer string) bool {
+	return answer == q.CorrectAnswer
+}
+
+// ShuffleAnswers merging the correct answer with the incorrect answers
+func (q *Question) ShuffleAnswers() []string {
+	answers := append(q.IncorrectAnswers, q.CorrectAnswer)
+
+	shuffle.Strings(answers)
+
+	return answers
 }
 
 // QuestionService handles communication with the question related
